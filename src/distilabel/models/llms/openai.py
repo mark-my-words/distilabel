@@ -42,7 +42,6 @@ if TYPE_CHECKING:
         StructuredInput,
     )
 
-
 _OPENAI_BATCH_API_MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 
 
@@ -153,20 +152,20 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
 
     @validate_call
     async def agenerate(  # type: ignore
-        self,
-        input: FormattedInput,
-        num_generations: int = 1,
-        max_new_tokens: NonNegativeInt = 128,
-        logprobs: bool = False,
-        top_logprobs: Optional[PositiveInt] = None,
-        echo: bool = False,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        temperature: float = 1.0,
-        top_p: float = 1.0,
-        stop: Optional[Union[str, List[str]]] = None,
-        response_format: Optional[Dict[str, str]] = None,
-        extra_body: Optional[Dict[str, Any]] = None,
+            self,
+            input: FormattedInput,
+            num_generations: int = 1,
+            max_new_tokens: NonNegativeInt = 3000,
+            logprobs: bool = False,
+            top_logprobs: Optional[PositiveInt] = None,
+            echo: bool = False,
+            frequency_penalty: float = 0.0,
+            presence_penalty: float = 0.0,
+            temperature: float = 1.0,
+            top_p: float = 1.0,
+            stop: Optional[Union[str, List[str]]] = None,
+            response_format: Optional[Dict[str, str]] = None,
+            extra_body: Optional[Dict[str, Any]] = None,
     ) -> GenerateOutput:
         """Generates `num_generations` responses for the given input using the OpenAI async
         client.
@@ -231,17 +230,17 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         )
 
     async def _generate_completion(
-        self,
-        input: str,
-        num_generations: int = 1,
-        max_new_tokens: int = 128,
-        echo: bool = False,
-        top_logprobs: Optional[PositiveInt] = None,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        temperature: float = 1.0,
-        top_p: float = 1.0,
-        extra_body: Optional[Dict[str, Any]] = None,
+            self,
+            input: str,
+            num_generations: int = 1,
+            max_new_tokens: int = 3000,
+            echo: bool = False,
+            top_logprobs: Optional[PositiveInt] = None,
+            frequency_penalty: float = 0.0,
+            presence_penalty: float = 0.0,
+            temperature: float = 1.0,
+            top_p: float = 1.0,
+            extra_body: Optional[Dict[str, Any]] = None,
     ) -> GenerateOutput:
         completion = await self._aclient.completions.create(
             prompt=input,
@@ -273,7 +272,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         )
 
     def _get_logprobs_from_completion_choice(
-        self, choice: "OpenAICompletionChoice"
+            self, choice: "OpenAICompletionChoice"
     ) -> Union[List[Union[List["Logprob"], None]], None]:
         if choice.logprobs is None or choice.logprobs.top_logprobs is None:
             return None
@@ -289,19 +288,19 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         ]
 
     async def _generate_chat_completion(
-        self,
-        input: Union["StandardInput", "StructuredInput"],
-        num_generations: int = 1,
-        max_new_tokens: int = 128,
-        logprobs: bool = False,
-        top_logprobs: Optional[PositiveInt] = None,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        temperature: float = 1.0,
-        top_p: float = 1.0,
-        stop: Optional[Union[str, List[str]]] = None,
-        response_format: Optional[Dict[str, str]] = None,
-        extra_body: Optional[Dict[str, Any]] = None,
+            self,
+            input: Union["StandardInput", "StructuredInput"],
+            num_generations: int = 1,
+            max_new_tokens: int = 3000,
+            logprobs: bool = False,
+            top_logprobs: Optional[PositiveInt] = None,
+            frequency_penalty: float = 0.0,
+            presence_penalty: float = 0.0,
+            temperature: float = 1.0,
+            top_p: float = 1.0,
+            stop: Optional[Union[str, List[str]]] = None,
+            response_format: Optional[Dict[str, str]] = None,
+            extra_body: Optional[Dict[str, Any]] = None,
     ) -> GenerateOutput:
         structured_output = None
         if isinstance(input, tuple):
@@ -334,22 +333,25 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         # Checks if any message contains an image, in that case "stop" cannot be used or
         # raises an error in the API.
         if isinstance(
-            [row for row in input if row["role"] == "user"][0]["content"], list
+                [row for row in input if row["role"] == "user"][0]["content"], list
         ):
             kwargs.pop("stop")
 
-        if response_format is not None:
-            kwargs["response_format"] = response_format
-
-        if structured_output:
-            kwargs = self._prepare_kwargs(kwargs, structured_output)  # type: ignore
+        if response_format is None:
+            kwargs["response_format"] = {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": structured_output["schema"]["title"],
+                    "schema": structured_output["schema"],
+                },
+            }
 
         completion = await self._aclient.chat.completions.create(**kwargs)  # type: ignore
 
         return self._generations_from_openai_completion(completion)
 
     def _generations_from_openai_completion(
-        self, completion: "OpenAIChatCompletion"
+            self, completion: "OpenAIChatCompletion"
     ) -> "GenerateOutput":
         """Get the generations from the OpenAI Chat Completion object.
 
@@ -369,7 +371,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
                 )
             generations.append(content)
             if choice_logprobs := self._get_logprobs_from_chat_completion_choice(
-                choice
+                    choice
             ):
                 logprobs.append(choice_logprobs)
 
@@ -382,7 +384,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         )
 
     def _get_logprobs_from_chat_completion_choice(
-        self, choice: "OpenAIChatCompletionChoice"
+            self, choice: "OpenAIChatCompletionChoice"
     ) -> Union[List[List["Logprob"]], None]:
         if choice.logprobs is None or choice.logprobs.content is None:
             return None
@@ -396,19 +398,19 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         ]
 
     def offline_batch_generate(
-        self,
-        inputs: Union[List["FormattedInput"], None] = None,
-        num_generations: int = 1,
-        max_new_tokens: int = 128,
-        logprobs: bool = False,
-        top_logprobs: Optional[PositiveInt] = None,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        temperature: float = 1.0,
-        top_p: float = 1.0,
-        stop: Optional[Union[str, List[str]]] = None,
-        response_format: Optional[str] = None,
-        **kwargs: Any,
+            self,
+            inputs: Union[List["FormattedInput"], None] = None,
+            num_generations: int = 1,
+            max_new_tokens: int = 3000,
+            logprobs: bool = False,
+            top_logprobs: Optional[PositiveInt] = None,
+            frequency_penalty: float = 0.0,
+            presence_penalty: float = 0.0,
+            temperature: float = 1.0,
+            top_p: float = 1.0,
+            stop: Optional[Union[str, List[str]]] = None,
+            response_format: Optional[str] = None,
+            **kwargs: Any,
     ) -> List["GenerateOutput"]:
         """Uses the OpenAI batch API to generate `num_generations` responses for the given
         inputs.
@@ -584,7 +586,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
             return []
 
     def _create_jobs(
-        self, inputs: List["FormattedInput"], **kwargs: Any
+            self, inputs: List["FormattedInput"], **kwargs: Any
     ) -> Tuple[str, ...]:
         """Creates jobs in the OpenAI Batch API to generate responses for the given inputs.
 
@@ -603,7 +605,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         return tuple(jobs)
 
     def _create_batch_api_job(
-        self, batch_input_file: "OpenAIFileObject"
+            self, batch_input_file: "OpenAIFileObject"
     ) -> Union["OpenAIBatch", None]:
         """Creates a job in the OpenAI Batch API to generate responses for the given input
         file.
@@ -641,7 +643,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         return batch
 
     def _create_batch_files(
-        self, inputs: List["FormattedInput"], **kwargs: Any
+            self, inputs: List["FormattedInput"], **kwargs: Any
     ) -> List["OpenAIFileObject"]:
         """Creates the necessary input files for the batch API to generate responses. The
         maximum size of each file so the OpenAI Batch API can process it is 100MB, so we
@@ -665,7 +667,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
 
         files = []
         for file_no, buffer in enumerate(
-            self._create_jsonl_buffers(inputs=inputs, **kwargs)
+                self._create_jsonl_buffers(inputs=inputs, **kwargs)
         ):
             try:
                 # TODO: add distilabel pipeline name and id
@@ -682,7 +684,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         return files
 
     def _create_jsonl_buffers(
-        self, inputs: List["FormattedInput"], **kwargs: Any
+            self, inputs: List["FormattedInput"], **kwargs: Any
     ) -> Generator[io.BytesIO, None, None]:
         """Creates a generator of buffers containing the JSONL formatted inputs to be
         used by the OpenAI Batch API. The buffers created are of size 100MB or less.
@@ -716,7 +718,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
             yield buffer
 
     def _create_jsonl_row(
-        self, input: "FormattedInput", custom_id: str, **kwargs: Any
+            self, input: "FormattedInput", custom_id: str, **kwargs: Any
     ) -> bytes:
         """Creates a JSONL formatted row to be used by the OpenAI Batch API.
 
@@ -741,8 +743,8 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
 
     def _name_for_openai_files(self, file_no: int) -> str:
         if (
-            envs.DISTILABEL_PIPELINE_NAME is None
-            or envs.DISTILABEL_PIPELINE_CACHE_ID is None
+                envs.DISTILABEL_PIPELINE_NAME is None
+                or envs.DISTILABEL_PIPELINE_CACHE_ID is None
         ):
             return f"distilabel-pipeline-fileno-{file_no}.jsonl"
 
@@ -750,7 +752,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
 
     @staticmethod
     def _get_llm_statistics(
-        completion: Union["OpenAIChatCompletion", "OpenAICompletion"],
+            completion: Union["OpenAIChatCompletion", "OpenAICompletion"],
     ) -> "LLMStatistics":
         return {
             "output_tokens": [
