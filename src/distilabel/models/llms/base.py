@@ -44,9 +44,9 @@ if TYPE_CHECKING:
         FormattedInput,
         GenerateOutput,
         HiddenState,
-        InstructorStructuredOutputType,
         StandardInput,
         StructuredOutputType,
+        OutlinesStructuredOutputType
     )
     from distilabel.utils.docstring import Docstring
 
@@ -425,7 +425,7 @@ class AsyncLLM(LLM):
 
     @staticmethod
     def _prepare_structured_output(  # type: ignore
-        structured_output: "InstructorStructuredOutputType",
+        structured_output: "OutlinesStructuredOutputType",
         client: Any = None,
         framework: Optional[str] = None,
     ) -> Dict[str, Union[str, Any]]:

@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 from pydantic import BaseModel, Field, PrivateAttr, SecretStr
 
 from distilabel.mixins.runtime_parameters import RuntimeParameter
-from distilabel.typing import InstructorStructuredOutputType
+from distilabel.typing import OutlinesStructuredOutputType
 
 if TYPE_CHECKING:
     from openai import AsyncOpenAI, OpenAI
@@ -52,7 +52,7 @@ class OpenAIBaseClient(BaseModel):
         default=120,
         description="The maximum time in seconds to wait for a response from the API.",
     )
-    structured_output: Optional[RuntimeParameter[InstructorStructuredOutputType]] = (
+    structured_output: Optional[RuntimeParameter[OutlinesStructuredOutputType]] = (
         Field(
             default=None,
             description="The structured output format to use across all the generations.",
