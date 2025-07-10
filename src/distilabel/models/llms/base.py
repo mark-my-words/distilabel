@@ -441,16 +441,8 @@ class AsyncLLM(LLM):
             A dictionary containing the wrapped client and the schema to update the structured_output
             variable in case it is a pydantic model.
         """
-        from distilabel.steps.tasks.structured_outputs.instructor import (
-            prepare_instructor,
-        )
 
         result = {}
-        client = prepare_instructor(
-            client,
-            mode=structured_output.get("mode"),
-            framework=framework,  # type: ignore
-        )
         result["client"] = client
 
         schema = structured_output.get("schema")

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import (
-    TYPE_CHECKING,
     Any,
     Dict,
     List,
@@ -23,13 +22,6 @@ from typing import (
 )
 
 from typing_extensions import TypedDict
-
-if TYPE_CHECKING:
-    import pandas as pd
-    from datasets import Dataset
-
-    from distilabel.mixins.runtime_parameters import RuntimeParameterInfo
-    from distilabel.steps.base import GeneratorStep, GlobalStep, Step
 
 DownstreamConnectable = Union["Step", "GlobalStep"]
 """Alias for the `Step` types that can be connected as downstream steps."""

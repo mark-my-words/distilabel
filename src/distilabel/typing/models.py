@@ -84,22 +84,8 @@ class OutlinesStructuredOutputType(TypedDict, total=False):
     """
 
 
-class InstructorStructuredOutputType(TypedDict, total=False):
-    """TypedDict to represent the structured output configuration from `instructor`."""
-
-    format: Optional[Literal["json"]]
-    """One of "json"."""
-    schema: Union[Type[BaseModel], Dict[str, Any]]
-    """The schema to use for the structured output, a `pydantic.BaseModel` class. """
-    mode: Optional[str]
-    """Generation mode. Take a look at `instructor.Mode` for more information, if not informed it will
-    be determined automatically. """
-    max_retries: int
-    """Number of times to reask the model in case of error, if not set will default to the model's default. """
-
-
 StructuredOutputType = Union[
-    OutlinesStructuredOutputType, InstructorStructuredOutputType
+    OutlinesStructuredOutputType
 ]
 """StructuredOutputType is an alias for the union of `OutlinesStructuredOutputType` and `InstructorStructuredOutputType`."""
 StandardInput = ChatType

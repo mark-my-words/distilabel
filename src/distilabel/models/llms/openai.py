@@ -346,23 +346,6 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
 
         completion = await self._aclient.chat.completions.create(**kwargs)  # type: ignore
 
-        if structured_output:
-            # NOTE: `instructor` doesn't work with `n` parameter, so it will always return
-            # only 1 choice.
-            statistics = self._get_llm_statistics(completion._raw_response)
-            if choice_logprobs := self._get_logprobs_from_chat_completion_choice(
-                completion._raw_response.choices[0]
-            ):
-                output_logprobs = [choice_logprobs]
-            else:
-                output_logprobs = None
-            return prepare_output(
-                generations=[completion.model_dump_json()],
-                input_tokens=statistics["input_tokens"],
-                output_tokens=statistics["output_tokens"],
-                logprobs=output_logprobs,
-            )
-
         return self._generations_from_openai_completion(completion)
 
     def _generations_from_openai_completion(
