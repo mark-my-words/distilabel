@@ -337,7 +337,7 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
         ):
             kwargs.pop("stop")
 
-        if response_format is None:
+        if response_format is not None or structured_output:
             kwargs["response_format"] = {
                 "type": "json_schema",
                 "json_schema": {
