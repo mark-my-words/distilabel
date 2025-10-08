@@ -346,9 +346,17 @@ class OpenAILLM(OpenAIBaseClient, AsyncLLM):
                 },
             }
 
-        completion = await self._aclient.chat.completions.create(**kwargs)  # type: ignore
+        last_exception = None
+        for attempt in range(5):
+            try:
+                completion = await self._aclient.chat.completions.create(**kwargs)  # type: ignore
+                return self._generations_from_openai_completion(completion)
+            except Exception as e:
+                last_exception = e
+                print(f"Attempt {attempt + 1} failed: {e}")
+                await asyncio.sleep(1)
 
-        return self._generations_from_openai_completion(completion)
+        return []
 
     def _generations_from_openai_completion(
             self, completion: "OpenAIChatCompletion"
